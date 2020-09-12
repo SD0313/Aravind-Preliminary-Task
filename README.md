@@ -36,4 +36,33 @@ The model I built to perform the segmentation was a U-net architecture. The segm
 
 #### Preprocessing
 
+From a simplistic point of view, the segmentation model is supposed to detect the small circular area in the center. This has nothing to do with the nerves in the image. Therefore, I used an algorithm to remove the nerves as much as possible. Of course, when doing the actual classification, the nerves play an important role, however, for the purpose of segmentation, they are simply extra noise in the image. 
+```python
+def remove_nerves(image):
+    img = array_to_img(image)
+    
+    img = cv2.cvtColor(np.array(img), cv2.COLOR_BGR2RGB)
+    # convert image to grayScale
+    grayScale = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+   
+    # kernel for morphologyEx
+    kernel = cv2.getStructuringElement(1,(17,17))
+   
+    # apply MORPH_BLACKHAT to grayScale image
+    blackhat = cv2.morphologyEx(grayScale, cv2.MORPH_BLACKHAT, kernel)
+  
+    # apply thresholding to blackhat
+    _,threshold = cv2.threshold(blackhat,10,255,cv2.THRESH_BINARY)
 
+    # inpaint with original image and threshold image
+    final_image = cv2.inpaint(img,threshold,1,cv2.INPAINT_TELEA)
+    final_image = cv2.cvtColor(final_image, cv2.COLOR_BGR2RGB)
+    
+    return final_image.astype(np.float64)/255.0
+```
+
+Here is a step by step image diagram that shows how the nerves are hidden.
+
+![Remove Nerves](images/remove_nerves.png)
+
+The original 
