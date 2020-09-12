@@ -65,13 +65,15 @@ Here is a step by step image diagram that shows how the nerves are hidden.
 
 ![Remove Nerves](images/remove_nerves.png)
 
-Note: This method has been repurposed from a hair removal method for melanoma diagnosis.
+**Note:** This method has been repurposed from a hair removal method for melanoma diagnosis.
 
 The final image clearly hides the nerves a little. Since they still play an important role in classification, they are added back to full resolution when preparing the data for classification. The following pictures show the difference it made to remove the nerves.
 
 Prediction Before Nerve Removal       |  Full Image     | Prediction After Nerve Removal
 :-------------------------:|:-------------------------:|:-------------------------:
 ![](images/mask_with_nerves.png)  |  ![](images/Original_Image.png)   | ![](images/mask_no_nerves.png)
+
+**Note:** This image was not part of the training set!
 
 Removing the nerves from the fundus image resulted in a slightly more accurate segmentation.
 
