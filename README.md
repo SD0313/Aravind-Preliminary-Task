@@ -26,7 +26,7 @@ The fundus images from the 3 datasets come in two forms. Some include the full f
   The optic disc carries a lot of importance when diagnosing glaucoma since it gives information on the cup to disc ratio. The images below show a side by side comparison of the original fundus image with the segmentation labels given. The blue color represents the optic disk and the yellow represents the optic cup. The ratio of these colors is supposed to be a significant factor in the diagnosis process.
 ![CD Ratio Image](images/CD_Ratio_true.png) ![CD Ratio Mask](images/CD_Ratio_mask.png)
 
-However, according to the paper below, it is extremely difficult to get a near accurate ratio. Instead, we crop the image around the optic disk so that the convolutional neural network can still detect important features from this region. 
+However, according to the paper below, it is extremely difficult to get even an approximately accurate ratio. Instead, we crop the image around the optic disk so that the convolutional neural network can still detect important features from this region. 
 
   >Diaz-Pinto, A., Morales, S., Naranjo, V. et al. CNNs for automatic glaucoma assessment using fundus images: an extensive validation. BioMed Eng OnLine 18, 29 (2019). https://doi.org/10.1186/s12938-019-0649-y
   
@@ -65,4 +65,13 @@ Here is a step by step image diagram that shows how the nerves are hidden.
 
 ![Remove Nerves](images/remove_nerves.png)
 
-The original 
+Note: This method has been repurposed from a hair removal method for melanoma diagnosis.
+
+The final image clearly hides the nerves a little. Since they still play an important role in classification, they are added back to full resolution when preparing the data for classification. The following pictures show the difference it made to remove the nerves.
+
+Prediction Before Nerve Removal       |  Full Image     | Prediction After Nerve Removal
+:-------------------------:|:-------------------------:|:-------------------------:
+![](images/mask_with_nerves.png)  |  ![](images/Original_Image.png)   | ![](images/mask_no_nerves.png)
+
+Removing the nerves from the fundus image resulted in a slightly more accurate segmentation.
+
