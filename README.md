@@ -91,4 +91,5 @@ Once I had the segmentation for each image, I was ready to crop them at the desi
 
 Full Image       |  Cropped Region
 :-------------------------:|:-------------------------:
-![](images/image_1366.jpg)  |  ![](images/image_1366_cropped.jpg)
+<img src="images/image_1366.jpg" alt="drawing" width="200"/>  |  <img src="images/image_1366_cropped.jpg" alt="drawing" width="200"/>
+
