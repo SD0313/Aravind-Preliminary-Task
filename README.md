@@ -122,4 +122,8 @@ class myCallback(tf.keras.callbacks.Callback):
             print("\nReached 70% AUC score so cancelling training!")
             self.model.stop_training = True
 ```
-This callback stopped training once either the validation accuracy reached 70% or the AUC reached 69%. In the medical context, I was more worried about AUC. If a person gets diagnosed with Glaucoma, but they actually don't have it, then they can still take precaution. However, it is mroe dangerous if there is a false negative (has Glaucoma but diagnosed as Healthy) because the patient with Glaucoma will not take any further action. For this reason, it is important to be cautious about the AUC rather than simple accuracy. 
+This callback stopped training once either the validation accuracy reached 70% or the AUC reached 69%. In the medical context, I was more worried about AUC. If a person gets diagnosed with Glaucoma, but they actually don't have it, then they can still take precaution. However, it is mroe dangerous if there is a false negative (has Glaucoma but diagnosed as Healthy) because the patient with Glaucoma will not take any further action. For this reason, it is important to be cautious about the AUC rather than simple accuracy. The model reached the AUC requirement after 11 epochs and stopped due to this callback. 
+
+## Test Pipeline
+
+This is the last step of the project. The code in ```5. Testing Pipeline.ipynb``` has a method ```get_diagnosis``` that will take a filename and a boolean parameter signifying whether to crop or not. Then, it will print the diagnosis. The goal of this simple method is to diagnose Glaucoma at its early stages and prevent the risk of permanent blindness. 
