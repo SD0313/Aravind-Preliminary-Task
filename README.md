@@ -93,3 +93,15 @@ Full Image       |  Cropped Region
 :-------------------------:|:-------------------------:
 <img src="images/image_1366.jpg" alt="drawing" width="200"/>  |  <img src="images/image_1366_cropped.jpg" alt="drawing" width="200"/>
 
+**Note**: This image is not from the train set.
+
+This cropping technique was applied to every image in the ORIGA and G1020 datasets. The ACRIMA dataset contained images that had already been cropped so they did not need to be processed any further. Going through each image from the two datasets and cropping them took about 6 to 7 hours since it had to be run through the model and cropped. After this was done, I stored each image in a folder based on which class (Glaucoma or Healthy) they belonged to. 
+
+I had to filter out some of the cropped images since they were not predicted correctly by the u-net. Here is an example of one such image:
+
+<img src="images/image_1386_badcrop.jpg" alt="drawing" width="200"/>
+
+It is clear that there is no optic disc shown in the cropped region. These types of images were filtered out. After removing all of these images, 2,272 images remained in the cummalative dataset. Exactly 103 images were removed.
+
+## Classification Model
+
