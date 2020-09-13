@@ -24,6 +24,7 @@ The fundus images from the 3 datasets come in two forms. Some include the full f
   >Orlando JI, Prokofyeva E, del Fresno M, Blaschko MB. Convolutional neural network transfer for automated glaucoma identification. In: SPIE proceedings. 2017, p. 10160–10. https://doi.org/10.1117/12.2255740
   
   The optic disc carries a lot of importance when diagnosing glaucoma since it gives information on the cup to disc ratio. The images below show a side by side comparison of the original fundus image with the segmentation labels given. The blue color represents the optic disk and the yellow represents the optic cup. The ratio of these colors is supposed to be a significant factor in the diagnosis process.
+  
 ![CD Ratio Image](images/CD_Ratio_true.png) ![CD Ratio Mask](images/CD_Ratio_mask.png)
 
 However, according to the paper below, it is extremely difficult to get even an approximately accurate ratio. Instead, we crop the image around the optic disk so that the convolutional neural network can still detect important features from this region. 
@@ -35,6 +36,7 @@ However, according to the paper below, it is extremely difficult to get even an 
 The model I built to perform the segmentation was a U-net architecture. The segmentation was trained on the 650 images from the ORIGA dataset, since the other two sources did not provide labels for the masks. 
 
 #### Preprocessing
+The first preprocessing step I did was resizing everything to a 512x512 sized image/mask. Then I used some more advanced techniques. 
 
 From a simplistic point of view, the segmentation model is supposed to detect the small circular area in the center. This has nothing to do with the nerves in the image. Therefore, I used an algorithm to remove the nerves as much as possible. Of course, when doing the actual classification, the nerves play an important role, however, for the purpose of segmentation, they are simply extra noise in the image. 
 ```python
@@ -69,11 +71,24 @@ Here is a step by step image diagram that shows how the nerves are hidden.
 
 The final image clearly hides the nerves a little. Since they still play an important role in classification, they are added back to full resolution when preparing the data for classification. The following pictures show the difference it made to remove the nerves.
 
-Prediction Before Nerve Removal       |  Full Image     | Prediction After Nerve Removal
+Prediction Without Nerve Removal       |  Full Image     | Prediction With Nerve Removal
 :-------------------------:|:-------------------------:|:-------------------------:
 ![](images/mask_with_nerves.png)  |  ![](images/Original_Image.png)   | ![](images/mask_no_nerves.png)
 
 **Note:** This image was not part of the training set!
 
-Removing the nerves from the fundus image resulted in a slightly more accurate segmentation.
+Removing the nerves from the fundus image resulted in a slightly more accurate segmentation. 
 
+After preprocessing the image, I built a U-net using tensorflow's mobilenet architecture. To accomplish the task with a simple API, I installed tensorflow's pix2pix library. This was a small library created to help with upsampling convolutional layers. 
+
+### Training
+
+Training this model was a little difficult because of the class imbalance (almost all are background pixels). When I trained with simple categorical cross-entropy, the model predicted the background class for everything. Later, I used the same model with a multiclass soft-dice loss. The implementation that I used also ignored the first class which was the background class in my case. This gave me much better results. 
+
+### Cropping Technique
+
+Once I had the segmentation for each image, I was ready to crop them at the desired location. My segmentation separated the fundus image into three classes: background (0), optic disc (1), optic cup (2). For each image, I iterate through the pixels and find the average x and y coordinates of the pixels marked as 1/optic disc and 2/optic cup. After getting this center point, I cropped out a square region with this point as the center. The size of the cropped region was adjusted based on the size of the overall image. 
+
+Full Image       |  Cropped Region
+:-------------------------:|:-------------------------:
+![](images/image_1366.jpg)  |  ![](images/image_1366_cropped.jpg)
