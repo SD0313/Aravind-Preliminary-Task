@@ -95,9 +95,9 @@ Full Image       |  Cropped Region
 
 **Note**: This image is not from the train set.
 
-This cropping technique was applied to every image in the ORIGA and G1020 datasets. The ACRIMA dataset contained images that had already been cropped so they did not need to be processed any further. Going through each image from the two datasets and cropping them took about 6 to 7 hours since it had to be run through the model and cropped. After this was done, I stored each image in a folder based on which class (Glaucoma or Healthy) they belonged to. 
+This cropping technique was applied to every image in the ORIGA and G1020 datasets. The ACRIMA dataset contained images that had already been cropped so they did not need to be processed any further. Going through each image from the two datasets and cropping them took about 6 to 7 hours since it had to be run through the model and cropped. After this was done, I stored each image in a folder based on which class (Glaucoma or Healthy) they belonged to. Code for this is in ```3d. Create Cropped Images.ipynb```.
 
-I had to filter out some of the cropped images since they were not predicted correctly by the u-net. Here is an example of one such image:
+At the end, I had to filter out some of the cropped images since they were not predicted correctly by the u-net. Here is an example of one such image:
 
 <img src="images/image_1386_badcrop.jpg" alt="drawing" width="200"/>
 
@@ -105,3 +105,21 @@ It is clear that there is no optic disc shown in the cropped region. These types
 
 ## Classification Model
 
+Before doing any image segmentation or adding additional datasets, I created a simple baseline model with just the 650 original images. Of course, this did not perform very well due to the extremely low number of images. Furthermore, the model was taking in the entire fundus image as input instead of just the optic disc region. The code for the baseline model is found in ```2. Baseline Model - No Cropping.ipynb```. This model was extremely difficult to evaluate since the validation set consisted of very few images. As a result, the validation accuracy and AUC score fluctuated. However, generally, the AUC score was near or below 50% (50 is the base score). 
+
+The final model ```4. Final Model - With Cropping.ipynb``` resulted in much better results. These were trained on the cropped dataset with 2,272 images. I received the best results using the **InceptionV3** model pre-trained on imagenet with zero frozen layers. The model was trained using a learning rate of 1e-4 and Stochastic Gradient Descent optimizer. Originally, I trained the model using binary_crossentropy, however, due to the imbalance (30% Glaucoma, 70% Healthy), the AUC score was staying around 50 again. 
+
+To solve this issue, I switched to a weighted binary cross entropy which significantly increased the AUC and accuracy scores. The model usually reached a maximum AUC score of 69 to 70 on the validation (much better than before) and then started overfitting the train dataset. To stop once overfitting began, I created the following callback:
+
+```python
+
+class myCallback(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs={}):
+        if(logs.get('val_accuracy')>0.7):
+            print("\nReached 70% accuracy so cancelling training!")
+            self.model.stop_training = True
+        if (logs.get('val_auc') > 0.69):
+            print("\nReached 70% AUC score so cancelling training!")
+            self.model.stop_training = True
+```
+This callback stopped training once either the validation accuracy reached 70% or the AUC reached 69%. In the medical context, I was more worried about AUC. If a person gets diagnosed with Glaucoma, but they actually don't have it, then they can still take precaution. However, it is mroe dangerous if there is a false negative (has Glaucoma but diagnosed as Healthy) because the patient with Glaucoma will not take any further action. For this reason, it is important to be cautious about the AUC rather than simple accuracy. 
