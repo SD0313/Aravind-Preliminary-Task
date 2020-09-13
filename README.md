@@ -83,11 +83,11 @@ After preprocessing the image, I built a U-net using tensorflow's mobilenet arch
 
 ### Training
 
-Training this model was a little difficult because of the class imbalance (almost all are background pixels). When I trained with simple categorical cross-entropy, the model predicted the background class for everything. Later, I used the same model with a multiclass soft-dice loss. The implementation that I used also ignored the first class which was the background class in my case. This gave me much better results. 
+Training this model was a little difficult because of the class imbalance (almost all are background pixels). When I trained with simple categorical cross-entropy, the model predicted the background class for everything. Later, I used the same model with a multiclass **soft-dice loss**. The implementation that I used also ignored the first class which was the background class in my case. This gave me much better results. 
 
 ### Cropping Technique
 
-Once I had the segmentation for each image, I was ready to crop them at the desired location. My segmentation separated the fundus image into three classes: background (0), optic disc (1), optic cup (2). For each image, I iterate through the pixels and find the average x and y coordinates of the pixels marked as 1/optic disc and 2/optic cup. After getting this center point, I cropped out a square region with this point as the center. The size of the cropped region was adjusted based on the size of the overall image. 
+Once I had the segmentation for each image, I was ready to crop them at the desired location. My segmentation separated the fundus image into three classes: background (0), optic disc (1), optic cup (2). For each image, I iterated through the pixels and found the average x and y coordinates of the pixels marked as 1/optic disc and 2/optic cup. After getting this center point, I cropped out a square region with the average point as the center. The size of the cropped region was adjusted based on the size of the overall image. 
 
 Full Image       |  Cropped Region
 :-------------------------:|:-------------------------:
@@ -105,7 +105,7 @@ It is clear that there is no optic disc shown in the cropped region. These types
 
 ## Classification Model
 
-Before doing any image segmentation or adding additional datasets, I created a simple baseline model with just the 650 original images. Of course, this did not perform very well due to the extremely low number of images. Furthermore, the model was taking in the entire fundus image as input instead of just the optic disc region. The code for the baseline model is found in ```2. Baseline Model - No Cropping.ipynb```. This model was extremely difficult to evaluate since the validation set consisted of very few images. As a result, the validation accuracy and AUC score fluctuated. However, generally, the AUC score was near or below 50% (50 is the base score). 
+Before doing any image segmentation or adding additional datasets, I created a simple baseline model with just the 650 original images. Of course, this did not perform very well due to the extremely low number of images. Furthermore, the model was taking in the entire fundus image as input instead of just the optic disc region. The code for the baseline model is found in ```2. Baseline Model - No Cropping.ipynb```. This model was extremely difficult to evaluate since the validation set consisted of very few images. As a result, the validation accuracy and AUC score fluctuated. Generally, the AUC score was near or below 50% (50 is the base score). 
 
 The final model ```4. Final Model - With Cropping.ipynb``` resulted in much better results. These were trained on the cropped dataset with 2,272 images. I received the best results using the **InceptionV3** model pre-trained on imagenet with zero frozen layers. The model was trained using a learning rate of 1e-4 and Stochastic Gradient Descent optimizer. Originally, I trained the model using binary_crossentropy, however, due to the imbalance (30% Glaucoma, 70% Healthy), the AUC score was staying around 50 again. 
 
