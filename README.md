@@ -4,7 +4,7 @@
 
   Glaucoma is a disease in the eye where elevated pressure causes eye damage. Due to the pressure, the optic nerve does not function properly and can lead to permanent loss of vision. However, the disease can be treated if detected at its early stages since the disease progresses very slowly. Current diagnostic tests are not the most efficient. The most common method used is tonography, a diagnostic test which records the eye pressure over a 4-minute period. 
 
-  New research has shown that a diagnosis can be made by just using the fundus image using deep learning algorithms. Good results have been produced, however, not much research has been done which includes multiple sources of data. Limiting the dataset to one source can introduce bias and limits the number of images used for training. My goal was to create a model that uses data from several resources and create a full testing pipeline to perform a diagnosis. 
+  New research has shown that a diagnosis can be made by just using the fundus image and deep learning algorithms. Good results have been produced, however, not much research has been done which includes multiple sources of data. Limiting the dataset to one source can introduce bias and limits the number of images used for training. My goal was to **create a model that uses data from several resources and create a full testing pipeline to perform a diagnosis**. 
 
 ## Methods
 
@@ -95,7 +95,7 @@ Full Image       |  Cropped Region
 
 **Note**: This image is not from the train set.
 
-This cropping technique was applied to every image in the ORIGA and G1020 datasets. The ACRIMA dataset contained images that had already been cropped so they did not need to be processed any further. Going through each image from the two datasets and cropping them took about 6 to 7 hours since it had to be run through the model and cropped. After this was done, I stored each image in a folder based on which class (Glaucoma or Healthy) they belonged to. Code for this is in ```3d. Create Cropped Images.ipynb```.
+This cropping technique was applied to every image in the ORIGA and G1020 datasets. The ACRIMA dataset contained images that had already been cropped so they did not need to be processed any further. Going through each image from the two datasets and cropping them took about 6 to 7 hours since it had to be run through the model and cropped. After this was done, I stored each cropped image in a folder based on which class (Glaucoma or Healthy) they belonged to. Code for this is in ```3d. Create Cropped Images.ipynb```.
 
 At the end, I had to filter out some of the cropped images since they were not predicted correctly by the u-net. Here is an example of one such image:
 
@@ -107,9 +107,9 @@ It is clear that there is no optic disc shown in the cropped region. These types
 
 Before doing any image segmentation or adding additional datasets, I created a simple baseline model with just the 650 original images. Of course, this did not perform very well due to the extremely low number of images. Furthermore, the model was taking in the entire fundus image as input instead of just the optic disc region. The code for the baseline model is found in ```2. Baseline Model - No Cropping.ipynb```. This model was extremely difficult to evaluate since the validation set consisted of very few images. As a result, the validation accuracy and AUC score fluctuated. Generally, the AUC score was near or below 50% (50 is the base score). 
 
-The final model ```4. Final Model - With Cropping.ipynb``` resulted in much better results. These were trained on the cropped dataset with 2,272 images. I received the best results using the **InceptionV3** model pre-trained on imagenet with zero frozen layers. The model was trained using a learning rate of 1e-4 and Stochastic Gradient Descent optimizer. Originally, I trained the model using binary_crossentropy, however, due to the imbalance (30% Glaucoma, 70% Healthy), the AUC score was staying around 50 again. 
+The final model ```4. Final Model - With Cropping.ipynb``` resulted in much better results. These were trained on the cropped dataset with 2,272 images and many more were generated using **data augmentation**. I received the best results using the **InceptionV3** model pre-trained on imagenet with zero frozen layers. The model was trained using a learning rate of 1e-4 and Stochastic Gradient Descent optimizer. Originally, I trained the model using binary_crossentropy, however, due to the imbalance (30% Glaucoma, 70% Healthy), the AUC score was staying right above 50, barely better than the baseline model. 
 
-To solve this issue, I switched to a weighted binary cross entropy which significantly increased the AUC and accuracy scores. The model usually reached a maximum AUC score of 69 to 70 on the validation (much better than before) and then started overfitting the train dataset. To stop once overfitting began, I created the following callback:
+To solve this issue, I switched to a **weighted binary cross entropy** which significantly increased the AUC and accuracy scores. The model usually reached a maximum AUC score of 69 to 70 on the validation (much better than before) and then started overfitting the train dataset. To stop once overfitting began, I created the following callback:
 
 ```python
 
@@ -122,7 +122,7 @@ class myCallback(tf.keras.callbacks.Callback):
             print("\nReached 70% AUC score so cancelling training!")
             self.model.stop_training = True
 ```
-This callback stopped training once either the validation accuracy reached 70% or the AUC reached 69%. In the medical context, I was more worried about AUC. If a person gets diagnosed with Glaucoma, but they actually don't have it, then they can still take precaution. However, it is mroe dangerous if there is a false negative (has Glaucoma but diagnosed as Healthy) because the patient with Glaucoma will not take any further action. For this reason, it is important to be cautious about the AUC rather than simple accuracy. The model reached the AUC requirement after 11 epochs and stopped due to this callback. 
+This callback stopped training once either the validation accuracy reached 70% or the AUC reached 69%. In the medical context, I was more worried about AUC. If a person gets diagnosed with Glaucoma, but they actually don't have it, then they can still take precaution. However, it is more dangerous if there is a false negative (has Glaucoma but diagnosed as Healthy) because the patient with Glaucoma will not take any further action. For this reason, it is important to be cautious about the AUC rather than simple accuracy. The model reached the AUC requirement after 11 epochs and stopped due to this callback. The final model file also displays graphs of the model loss and accuracy during training and validation. 
 
 ## Test Pipeline
 
